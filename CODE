@@ -1,0 +1,148 @@
+import csv
+import os
+from datetime import datetime
+
+FILE_NAME = "expenses.csv"
+
+# Create CSV file if it doesn't exist
+if not os.path.exists(FILE_NAME):
+    with open(FILE_NAME, "w", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(["Date", "Category", "Amount"])
+
+
+def add_expense():
+    category = input("Enter Category (Food/Travel/Shopping/etc): ")
+    amount = float(input("Enter Amount: "))
+    date = datetime.now().strftime("%d-%m-%Y")
+
+    with open(FILE_NAME, "a", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow([date, category, amount])
+
+    print("Expense Added Successfully!")
+
+
+def view_expenses():
+    try:
+        with open(FILE_NAME, "r") as file:
+            reader = csv.reader(file)
+
+            print("\n===== EXPENSES =====")
+            next(reader)
+
+            count = 0
+            for i, row in enumerate(reader, start=1):
+                print(f"{i}. Date: {row[0]} | Category: {row[1]} | Amount: ₹{row[2]}")
+                count += 1
+
+            if count == 0:
+                print("No expenses found.")
+
+    except FileNotFoundError:
+        print("No expense file found.")
+
+
+def total_expense():
+    total = 0
+
+    with open(FILE_NAME, "r") as file:
+        reader = csv.DictReader(file)
+
+        for row in reader:
+            total += float(row["Amount"])
+
+    print(f"\n Total Expense = ₹{total:.2f}")
+
+
+def delete_expense():
+    expenses = []
+
+    with open(FILE_NAME, "r") as file:
+        reader = csv.reader(file)
+        header = next(reader)
+
+        for row in reader:
+            expenses.append(row)
+
+    if not expenses:
+        print("No expenses available.")
+        return
+
+    for i, expense in enumerate(expenses, start=1):
+        print(f"{i}. {expense[0]} | {expense[1]} | ₹{expense[2]}")
+
+    try:
+        choice = int(input("Enter expense number to delete: "))
+
+        if 1 <= choice <= len(expenses):
+            removed = expenses.pop(choice - 1)
+
+            with open(FILE_NAME, "w", newline="") as file:
+                writer = csv.writer(file)
+                writer.writerow(header)
+                writer.writerows(expenses)
+
+            print(f"Deleted ₹{removed[2]} expense.")
+        else:
+            print("Invalid choice.")
+
+    except ValueError:
+        print("Enter a valid number.")
+
+
+def search_category():
+    category = input("Enter category to search: ").lower()
+
+    found = False
+
+    with open(FILE_NAME, "r") as file:
+        reader = csv.DictReader(file)
+
+        for row in reader:
+            if row["Category"].lower() == category:
+                print(
+                    f"Date: {row['Date']} | "
+                    f"Category: {row['Category']} | "
+                    f"Amount: ₹{row['Amount']}"
+                )
+                found = True
+
+    if not found:
+        print("No matching expenses found.")
+
+
+# Main Program
+while True:
+
+    print("\n========== EXPENSE TRACKER ==========")
+    print("1. Add Expense")
+    print("2. View Expenses")
+    print("3. Total Expense")
+    print("4. Search by Category")
+    print("5. Delete Expense")
+    print("6. Exit")
+
+    choice = input("Enter your choice: ")
+
+    if choice == "1":
+        add_expense()
+
+    elif choice == "2":
+        view_expenses()
+
+    elif choice == "3":
+        total_expense()
+
+    elif choice == "4":
+        search_category()
+
+    elif choice == "5":
+        delete_expense()
+
+    elif choice == "6":
+        print(" Thank You!")
+        break
+
+    else:
+        print("Invalid Choice")
